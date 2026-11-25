@@ -5,7 +5,9 @@ import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/account_page.dart';
 import '../../cart/data/cart_controller.dart';
 import '../../cart/presentation/cart_page.dart';
+import '../../rentals/data/rentals_controller.dart';
 import '../../rentals/domain/rental_period.dart';
+import '../../rentals/presentation/my_rentals_page.dart';
 import '../data/catalog_repository.dart';
 import '../domain/rental_product.dart';
 import 'product_details_page.dart';
@@ -30,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   bool _loading = true;
   String? _catalogError;
   final _cart = CartController();
+  final _rentals = RentalsController();
   List<RentalProduct> _products = [];
   final Set<String> _favorites = {};
 
@@ -65,6 +68,7 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _searchController.dispose();
     _cart.dispose();
+    _rentals.dispose();
     super.dispose();
   }
 
@@ -111,7 +115,24 @@ class _HomePageState extends State<HomePage> {
     if (account == null) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => CartPage(cart: _cart, account: account),
+        builder: (_) => CartPage(
+          cart: _cart,
+          account: account,
+          rentals: _rentals,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMyRentals() async {
+    final account = _account;
+    if (account == null) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => MyRentalsPage(
+          rentals: _rentals,
+          account: account,
+        ),
       ),
     );
   }
@@ -197,11 +218,12 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               children: [
                 ListenableBuilder(
-                  listenable: _cart,
+                  listenable: Listenable.merge([_cart, _rentals]),
                   builder: (context, _) => _TopBar(
                     wide: wide,
                     tablet: tablet,
                     cartCount: _cart.totalUnits,
+                    rentalsCount: _rentals.orders.length,
                     searchController: _searchController,
                     onSearchChanged: (_) => setState(() {}),
                     account: _account,
@@ -210,9 +232,11 @@ class _HomePageState extends State<HomePage> {
                     onSignOut: () => setState(() {
                       _account = null;
                       _cart.clear();
+                      _rentals.clear();
                       _favorites.clear();
                     }),
                     onCartTap: _openCart,
+                    onRentalsTap: _openMyRentals,
                     onAddProduct: _openPublishProduct,
                   ),
                 ),
@@ -223,81 +247,98 @@ class _HomePageState extends State<HomePage> {
                   ),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: wide
-                          ? 36
-                          : tablet
-                          ? 24
-                          : 16,
-                    ),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1420),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            _HeroBanner(
-                              onExplore: () =>
-                                  _selectCategory(RentalCategory.all),
-                            ),
-                            const SizedBox(height: 28),
-                            if (!wide)
-                              _CategoryChips(
-                                selected: _category,
-                                onSelected: (category) =>
-                                    setState(() => _category = category),
-                              ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (wide) ...[
-                                  SizedBox(
-                                    width: 224,
-                                    child: _CategorySidebar(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: wide
+                                ? 36
+                                : tablet
+                                ? 24
+                                : 16,
+                          ),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 1420),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 20),
+                                  _HeroBanner(
+                                    onExplore: () =>
+                                        _selectCategory(RentalCategory.all),
+                                  ),
+                                  const SizedBox(height: 28),
+                                  if (!wide)
+                                    _CategoryChips(
                                       selected: _category,
-                                      priceRange: _priceRange,
-                                      onCategorySelected: _selectCategory,
-                                      onPriceChanged: (value) =>
-                                          setState(() => _priceRange = value),
+                                      onSelected: (category) =>
+                                          setState(() => _category = category),
                                     ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (wide) ...[
+                                        SizedBox(
+                                          width: 224,
+                                          child: _CategorySidebar(
+                                            selected: _category,
+                                            priceRange: _priceRange,
+                                            onCategorySelected: _selectCategory,
+                                            onPriceChanged: (value) => setState(
+                                              () => _priceRange = value,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 32),
+                                      ],
+                                      Expanded(
+                                        child: _CatalogSection(
+                                          products: products,
+                                          loading: _loading,
+                                          errorMessage: _catalogError,
+                                          onRetry: _loadProducts,
+                                          category: _category,
+                                          sort: _sort,
+                                          favorites: _favorites,
+                                          signedIn: _account != null,
+                                          onSortChanged: (value) =>
+                                              setState(() => _sort = value),
+                                          onClearFilters: () => setState(() {
+                                            _category = RentalCategory.all;
+                                            _priceRange = const RangeValues(
+                                              0,
+                                              1000,
+                                            );
+                                            _searchController.clear();
+                                            _sort = 'Recomendados';
+                                          }),
+                                          onFavorite: (product) => setState(() {
+                                            if (!_favorites.add(product.id))
+                                              _favorites.remove(product.id);
+                                          }),
+                                          onAddToCart: _addToCart,
+                                          onDetails: _openDetails,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 32),
+                                  const SizedBox(height: 48),
                                 ],
-                                Expanded(
-                                  child: _CatalogSection(
-                                    products: products,
-                                    loading: _loading,
-                                    errorMessage: _catalogError,
-                                    onRetry: _loadProducts,
-                                    category: _category,
-                                    sort: _sort,
-                                    favorites: _favorites,
-                                    signedIn: _account != null,
-                                    onSortChanged: (value) =>
-                                        setState(() => _sort = value),
-                                    onClearFilters: () => setState(() {
-                                      _category = RentalCategory.all;
-                                      _priceRange = const RangeValues(0, 1000);
-                                      _searchController.clear();
-                                      _sort = 'Recomendados';
-                                    }),
-                                    onFavorite: (product) => setState(() {
-                                      if (!_favorites.add(product.id))
-                                        _favorites.remove(product.id);
-                                    }),
-                                    onAddToCart: _addToCart,
-                                    onDetails: _openDetails,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                            const SizedBox(height: 48),
-                            _Footer(onCategorySelected: _selectCategory),
-                            const SizedBox(height: 20),
-                          ],
+                          ),
                         ),
-                      ),
+                        _Footer(
+                          onCategorySelected: _selectCategory,
+                          horizontalPadding: wide
+                              ? 36
+                              : tablet
+                              ? 24
+                              : 16,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -315,6 +356,7 @@ class _TopBar extends StatelessWidget {
     required this.wide,
     required this.tablet,
     required this.cartCount,
+    required this.rentalsCount,
     required this.searchController,
     required this.onSearchChanged,
     required this.onAccountTap,
@@ -322,12 +364,14 @@ class _TopBar extends StatelessWidget {
     required this.onRegister,
     required this.onSignOut,
     required this.onCartTap,
+    required this.onRentalsTap,
     required this.onAddProduct,
   });
 
   final bool wide;
   final bool tablet;
   final int cartCount;
+  final int rentalsCount;
   final TextEditingController searchController;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAccountTap;
@@ -335,6 +379,7 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onRegister;
   final VoidCallback onSignOut;
   final VoidCallback onCartTap;
+  final VoidCallback onRentalsTap;
   final VoidCallback onAddProduct;
 
   @override
@@ -384,15 +429,44 @@ class _TopBar extends StatelessWidget {
             else
               IconButton(
                 tooltip: 'Publicar artículo',
+                visualDensity: VisualDensity.compact,
                 onPressed: onAddProduct,
                 icon: const Icon(Icons.add_circle_outline_rounded),
               ),
-            const SizedBox(width: 4),
+            if (wide) const SizedBox(width: 4),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  tooltip: 'Mis rentas',
+                  visualDensity: wide ? null : VisualDensity.compact,
+                  onPressed: onRentalsTap,
+                  icon: const Icon(Icons.local_shipping_outlined),
+                ),
+                if (rentalsCount > 0)
+                  Positioned(
+                    right: 2,
+                    top: 2,
+                    child: CircleAvatar(
+                      radius: 9,
+                      backgroundColor: AppColors.espresso,
+                      child: Text(
+                        '$rentalsCount',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             Stack(
               clipBehavior: Clip.none,
               children: [
                 IconButton(
                   tooltip: 'Carrito',
+                  visualDensity: wide ? null : VisualDensity.compact,
                   onPressed: onCartTap,
                   icon: const Icon(Icons.shopping_bag_outlined),
                 ),
@@ -416,20 +490,30 @@ class _TopBar extends StatelessWidget {
             ),
             PopupMenuButton<String>(
               tooltip: 'Mi cuenta · ${account?.firstName}',
-              onSelected: (_) => onSignOut(),
+              onSelected: (value) {
+                if (value == 'rentas') {
+                  onRentalsTap();
+                } else {
+                  onSignOut();
+                }
+              },
               itemBuilder: (context) => [
                 PopupMenuItem(
                   enabled: false,
                   child: Text('${account!.firstName} ${account!.lastName}'),
                 ),
                 const PopupMenuItem(
+                  value: 'rentas',
+                  child: Text('Mis rentas y envíos'),
+                ),
+                const PopupMenuItem(
                   value: 'salir',
                   child: Text('Cerrar sesión'),
                 ),
               ],
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: CircleAvatar(
+              child: Padding(
+                padding: EdgeInsets.all(wide ? 8 : 4),
+                child: const CircleAvatar(
                   radius: 17,
                   backgroundColor: AppColors.ivory,
                   child: Icon(
@@ -544,7 +628,7 @@ class _HeroBanner extends StatelessWidget {
     constraints: const BoxConstraints(minHeight: 224),
     decoration: BoxDecoration(
       color: AppColors.mustard,
-      borderRadius: BorderRadius.circular(26),
+      borderRadius: BorderRadius.circular(10),
       gradient: const LinearGradient(
         colors: [Color(0xFFD9B944), AppColors.mustard],
         begin: Alignment.topLeft,
@@ -937,13 +1021,13 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     color: AppColors.white,
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: BorderRadius.circular(10),
     child: InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(10),
       onTap: onDetails,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppColors.border.withValues(alpha: .8)),
           boxShadow: const [
             BoxShadow(
@@ -1239,20 +1323,29 @@ class _CatalogError extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.onCategorySelected});
+  const _Footer({
+    required this.onCategorySelected,
+    required this.horizontalPadding,
+  });
   final ValueChanged<RentalCategory> onCategorySelected;
+  final double horizontalPadding;
 
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    decoration: BoxDecoration(
-      color: AppColors.espresso,
-      borderRadius: BorderRadius.circular(24),
+    color: AppColors.espresso,
+    padding: EdgeInsets.fromLTRB(
+      horizontalPadding,
+      32,
+      horizontalPadding,
+      24,
     ),
-    padding: const EdgeInsets.fromLTRB(28, 30, 28, 18),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1420),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
         LayoutBuilder(
           builder: (context, constraints) {
             final stacked = constraints.maxWidth < 700;
@@ -1323,6 +1416,8 @@ class _Footer extends StatelessWidget {
           style: const TextStyle(color: Color(0xFFC9BFB4), fontSize: 11),
         ),
       ],
+        ),
+      ),
     ),
   );
 }

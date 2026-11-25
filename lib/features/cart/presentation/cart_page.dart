@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/format/money.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../rentals/data/rentals_controller.dart';
+import '../../rentals/presentation/checkout_page.dart';
 import '../data/cart_controller.dart';
 import '../domain/cart_item.dart';
 
@@ -11,12 +13,27 @@ class CartPage extends StatelessWidget {
     super.key,
     required this.cart,
     required this.account,
+    this.rentals,
   });
 
   final CartController cart;
   final AccountProfile account;
+  final RentalsController? rentals;
 
   Future<void> _confirmRental(BuildContext context) async {
+    final rentalsController = rentals;
+    if (rentalsController != null) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => CheckoutPage(
+            cart: cart,
+            rentals: rentalsController,
+            account: account,
+          ),
+        ),
+      );
+      return;
+    }
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -84,9 +101,9 @@ class CartPage extends StatelessWidget {
         return Scaffold(
           backgroundColor: AppColors.canvas,
           appBar: AppBar(
-            backgroundColor: AppColors.white,
-            surfaceTintColor: AppColors.white,
-            foregroundColor: AppColors.espresso,
+            backgroundColor: AppColors.espresso,
+            surfaceTintColor: AppColors.espresso,
+            foregroundColor: AppColors.white,
             elevation: 0,
             titleSpacing: 0,
             title: const Text(
@@ -95,17 +112,23 @@ class CartPage extends StatelessWidget {
             ),
             actions: [
               if (items.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: TextButton.icon(
-                    onPressed: cart.clear,
-                    icon: const Icon(Icons.delete_sweep_outlined, size: 18),
-                    label: const Text('Vaciar'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.muted,
-                    ),
+                TextButton.icon(
+                  onPressed: cart.clear,
+                  icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                  label: const Text('Vaciar'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.ivory,
                   ),
                 ),
+              IconButton(
+                tooltip: 'Volver al inicio',
+                onPressed: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
+                icon: const Icon(
+                  Icons.home_outlined,
+                  color: AppColors.mustard,
+                ),
+              ),
             ],
           ),
           body: items.isEmpty
@@ -236,14 +259,14 @@ class _CartItemCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.tan.withValues(alpha: 0.45)),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 520;
           final thumb = ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(6),
             child: SizedBox(
               width: compact ? 76 : 96,
               height: compact ? 76 : 96,
@@ -413,8 +436,8 @@ class _StepperControl extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: AppColors.ivory,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -467,66 +490,82 @@ class _DeliveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.white,
+      color: AppColors.ivory,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: AppColors.tan.withValues(alpha: 0.5)),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: RadioGroup<DeliveryMethod>(
-          groupValue: selected,
-          onChanged: (value) {
-            if (value != null) onChanged(value);
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Entrega y recolección',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: AppColors.tan.withValues(alpha: 0.2),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: const Text(
+              'Entrega y recolección',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+                color: AppColors.espresso,
               ),
-              const SizedBox(height: 10),
-              for (final method in DeliveryMethod.values)
-                RadioListTile<DeliveryMethod>(
-                  value: method,
-                  activeColor: AppColors.mustard,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    method.label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: method == DeliveryMethod.delivery
-                      ? Text(
-                          address.isEmpty
-                              ? 'Dirección registrada en tu cuenta'
-                              : address,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.muted,
-                          ),
-                        )
-                      : const Text(
-                          'Sin costo adicional · Se coordina punto de entrega',
-                          style: TextStyle(fontSize: 12, color: AppColors.muted),
-                        ),
-                  secondary: Text(
-                    method.baseCost == 0
-                        ? 'Gratis'
-                        : pesos(method.baseCost),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.espresso,
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: RadioGroup<DeliveryMethod>(
+              groupValue: selected,
+              onChanged: (value) {
+                if (value != null) onChanged(value);
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final method in DeliveryMethod.values)
+                    RadioListTile<DeliveryMethod>(
+                      value: method,
+                      activeColor: AppColors.espresso,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        method.label,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.espresso,
+                        ),
+                      ),
+                      subtitle: method == DeliveryMethod.delivery
+                          ? Text(
+                              address.isEmpty
+                                  ? 'Dirección registrada en tu cuenta'
+                                  : address,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.muted,
+                              ),
+                            )
+                          : const Text(
+                              'Sin costo adicional · Se coordina punto de entrega',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                      secondary: Text(
+                        method.baseCost == 0
+                            ? 'Gratis'
+                            : pesos(method.baseCost),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.espresso,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -544,84 +583,112 @@ class _OrderSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Resumen de renta',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 16),
-          _SummaryRow(
-            label:
-                'Artículos (${cart.totalUnits} ${cart.totalUnits == 1 ? 'unidad' : 'unidades'})',
-            value: pesos(cart.rentalSubtotal),
-          ),
-          const SizedBox(height: 10),
-          _SummaryRow(
-            label: 'Envío',
-            value: cart.shippingCost == 0
-                ? 'Gratis'
-                : pesos(cart.shippingCost),
-          ),
-          const SizedBox(height: 10),
-          _SummaryRow(
-            label: 'Depósito (por separado)',
-            value: pesos(cart.depositTotal),
-            mutedValue: true,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 14),
-            child: Divider(color: AppColors.border, height: 1),
-          ),
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Total estimado',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    pesos(cart.total),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.espresso,
-                    ),
+          Container(
+            color: AppColors.espresso,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Resumen de renta',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.white,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onContinue,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mustard,
-              foregroundColor: AppColors.espresso,
-              elevation: 0,
-              minimumSize: const Size.fromHeight(50),
+                SizedBox(height: 2),
+                Text(
+                  'Revisa montos antes de confirmar',
+                  style: TextStyle(fontSize: 12, color: AppColors.mustard),
+                ),
+              ],
             ),
-            child: const Text('Continuar renta'),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'El depósito en garantía se consulta en los detalles de cada artículo.',
-            style: TextStyle(
-              fontSize: 11,
-              height: 1.45,
-              color: AppColors.muted,
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _SummaryRow(
+                  label:
+                      'Artículos (${cart.totalUnits} ${cart.totalUnits == 1 ? 'unidad' : 'unidades'})',
+                  value: pesos(cart.rentalSubtotal),
+                ),
+                const SizedBox(height: 10),
+                _SummaryRow(
+                  label: 'Envío',
+                  value: cart.shippingCost == 0
+                      ? 'Gratis'
+                      : pesos(cart.shippingCost),
+                ),
+                const SizedBox(height: 10),
+                _SummaryRow(
+                  label: 'Depósito (por separado)',
+                  value: pesos(cart.depositTotal),
+                  mutedValue: true,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  child: Divider(color: AppColors.border, height: 1),
+                ),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Total estimado',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          pesos(cart.total),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.espresso,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: onContinue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.mustard,
+                    foregroundColor: AppColors.espresso,
+                    elevation: 0,
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  child: const Text('Continuar renta'),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'El depósito en garantía se consulta en los detalles de cada artículo.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    height: 1.45,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -198,4 +198,99 @@ void main() {
       },
     );
   }
+
+  for (final wide in [false, true]) {
+    testWidgets(
+      'Flujo completo pago, envío, reseña y reporte en ${wide ? 'escritorio' : 'móvil'}',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = wide
+            ? const Size(1280, 900)
+            : const Size(390, 844);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(UsusApp(auth: DemoAuthRepository()));
+        await tester.pumpAndSettle();
+
+        Future<void> tap(Finder target) async {
+          await tester.ensureVisible(target);
+          await tester.tap(target);
+          await tester.pumpAndSettle();
+        }
+
+        // Registrar usuario para iniciar sesión.
+        await tap(find.text(wide ? 'Crear cuenta' : 'Crear'));
+        final authFields = find.byType(TextFormField);
+        final authValues = [
+          'Juan',
+          'Arriaga',
+          'Av. Universidad 940, Centro, Aguascalientes',
+          'juan.flow@example.org',
+          'Clave1234',
+          'Clave1234',
+        ];
+        for (var i = 0; i < authValues.length; i++) {
+          await tester.enterText(authFields.at(i), authValues[i]);
+        }
+        await tap(find.byType(ElevatedButton));
+
+        // Agregar producto y abrir carrito -> Continuar renta.
+        await tap(find.text('Agregar al carrito').first);
+        await tap(find.text('Ver carrito'));
+        await tap(find.text('Continuar renta'));
+
+        // Pantalla de Checkout / Pago.
+        expect(find.text('Finalizar y pagar renta'), findsOneWidget);
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Número de tarjeta'),
+          '4111222233334444',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Vencimiento'),
+          '12/28',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'CVV'),
+          '123',
+        );
+        await tap(find.text('Confirmar y pagar'));
+
+        // Pantalla de Envío estilo Mercado Libre y botón de volver al inicio.
+        expect(find.byTooltip('Volver al inicio'), findsOneWidget);
+        expect(find.text('Preparando pedido'), findsWidgets);
+        expect(find.text('Seguimiento paso a paso'), findsOneWidget);
+
+        // Avanzar etapas hasta finalizar renta.
+        await tap(find.text('Avanzar estado del envío (Demo)'));
+        expect(find.text('En camino'), findsWidgets);
+        await tap(find.text('Avanzar estado del envío (Demo)'));
+        expect(find.text('Entregado'), findsWidgets);
+        await tap(find.text('Avanzar estado del envío (Demo)'));
+        expect(find.text('Renta finalizada'), findsWidgets);
+
+        // Enviar reseña.
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Tu reseña'),
+          'Excelente servicio y entrega puntual.',
+        );
+        await tap(find.text('Enviar reseña'));
+        expect(
+          find.text('Excelente servicio y entrega puntual.'),
+          findsOneWidget,
+        );
+
+        // Levantar reporte.
+        await tap(find.text('Reportar'));
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Descripción del problema'),
+          'Faltaba una extensión en la caja.',
+        );
+        await tap(find.text('Enviar reporte'));
+        expect(
+          find.text('Faltaba una extensión en la caja.'),
+          findsOneWidget,
+        );
+      },
+    );
+  }
 }
