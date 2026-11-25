@@ -210,15 +210,23 @@ class _PublishProductPageState extends State<PublishProductPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        surfaceTintColor: AppColors.white,
-        foregroundColor: AppColors.espresso,
+        backgroundColor: AppColors.espresso,
+        surfaceTintColor: AppColors.espresso,
+        foregroundColor: AppColors.white,
         elevation: 0,
         titleSpacing: 0,
         title: const Text(
           'Publicar artículo en renta',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Volver al inicio',
+            onPressed: () =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
+            icon: const Icon(Icons.home_outlined, color: AppColors.mustard),
+          ),
+        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -351,7 +359,7 @@ class _PhotosSection extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -373,7 +381,7 @@ class _PhotosSection extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColors.ivory,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppColors.border),
               ),
               child: Column(
@@ -405,7 +413,7 @@ class _PhotosSection extends StatelessWidget {
                   return Stack(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(6),
                         child: SizedBox(
                           width: 126,
                           height: 126,
@@ -584,7 +592,7 @@ class _ListingPreviewCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -596,7 +604,7 @@ class _ListingPreviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(6),
             child: SizedBox(
               height: 140,
               width: double.infinity,
@@ -723,7 +731,7 @@ class _FormDetailsCard extends StatelessWidget {
     return Material(
       color: AppColors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,

@@ -302,8 +302,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     );
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.espresso,
+        foregroundColor: AppColors.white,
         title: const Text('Detalles del artículo'),
+        actions: [
+          IconButton(
+            tooltip: 'Volver al inicio',
+            onPressed: () =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
+            icon: const Icon(Icons.home_outlined, color: AppColors.mustard),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
