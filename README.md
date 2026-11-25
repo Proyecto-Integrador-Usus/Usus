@@ -1,12 +1,12 @@
 # Usus
 
-Aplicación Flutter para encontrar y rentar artículos por categoría y ubicación. La entrega actual cubre la portada y el catálogo de demostración; no incluye servicios de servidor ni una base de datos.
+Aplicación Flutter para encontrar y rentar artículos por categoría y ubicación. La entrega actual cubre la portada, el catálogo y el acceso con una cuenta única en modo de demostración; no incluye servicios de servidor ni una base de datos.
 
 ## Lineamientos considerados
 
 - La referencia visual compartida define la paleta: mostaza `#D4AF37`, marfil `#F5F0E6`, café oscuro `#3B2F2F`, arena `#B08D57` y blanco `#FFFFFF`.
 - La portada muestra búsqueda, acceso de invitado, filtros, categorías y tarjetas de artículos.
-- Las acciones para publicar artículos y abrir el carrito solo aparecen al iniciar sesión.
+- Cualquier usuario con sesión iniciada ve el carrito y la acción para publicar artículos.
 - La interfaz se adapta a teléfono, tableta y escritorio.
 
 No se encontraron otros lineamientos o documentos de requisitos dentro del repositorio. El resto de las decisiones de estructura en este documento son recomendaciones para evolucionar el proyecto.
@@ -18,6 +18,7 @@ lib/
 ├── core/
 │   └── theme/                 # Paleta y tema compartido
 ├── features/
+│   ├── auth/                 # Pantallas de acceso y repositorio de cuentas demo
 │   └── catalog/
 │       ├── data/              # Repositorio de catálogo y datos demo
 │       ├── domain/            # Producto y categorías
@@ -26,6 +27,12 @@ lib/
 ```
 
 El contrato `CatalogRepository` permite cambiar `DemoCatalogRepository` por un adaptador REST sin acoplar las pantallas. La sesión y el carrito de esta portada son solo de demostración y se reinician al cerrar la app.
+
+## Registro y acceso
+
+Para probar el flujo, selecciona **Crear cuenta**, registra tus datos de ejemplo, incluida la dirección. Después de cerrar sesión puedes entrar con el mismo correo y contraseña mientras la app siga en ejecución.
+
+La cuenta reúne nombre, apellido, dirección y correo único. La dirección corresponde a `USUARIO.direccion` en el modelo previsto. La demo conserva estos datos en memoria mientras la app está abierta.
 
 ## Estructura recomendada al integrar Python y base de datos
 

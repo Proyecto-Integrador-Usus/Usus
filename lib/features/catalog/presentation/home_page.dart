@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../auth/presentation/account_page.dart';
 import '../data/catalog_repository.dart';
 import '../domain/rental_product.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.repository});
+  const HomePage({super.key, required this.repository, required this.auth});
 
   final CatalogRepository repository;
+  final AuthRepository auth;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -18,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   RentalCategory _category = RentalCategory.all;
   RangeValues _priceRange = const RangeValues(0, 1000);
   String _sort = 'Recomendados';
-  bool _signedIn = false;
+  AccountProfile? _account;
   bool _loading = true;
   String? _catalogError;
   int _cartCount = 0;
@@ -87,19 +90,13 @@ class _HomePageState extends State<HomePage> {
     Scaffold.maybeOf(context)?.closeDrawer();
   }
 
-  void _openAccountDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => _AccountDialog(
-        onContinue: () {
-          Navigator.pop(dialogContext);
-          setState(() => _signedIn = true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sesión de demostración iniciada')),
-          );
-        },
+  Future<void> _openAccount(AccountMode mode) async {
+    final account = await Navigator.of(context).push<AccountProfile>(
+      MaterialPageRoute(
+        builder: (_) => AccountPage(repository: widget.auth, initialMode: mode),
       ),
     );
+    if (mounted && account != null) setState(() => _account = account);
   }
 
   void _showMessage(String message) {
@@ -136,12 +133,17 @@ class _HomePageState extends State<HomePage> {
                 _TopBar(
                   wide: wide,
                   tablet: tablet,
-                  signedIn: _signedIn,
                   cartCount: _cartCount,
                   searchController: _searchController,
                   onSearchChanged: (_) => setState(() {}),
-                  onAccountTap: _openAccountDialog,
-                  onSignOut: () => setState(() => _signedIn = false),
+                  account: _account,
+                  onAccountTap: () => _openAccount(AccountMode.login),
+                  onRegister: () => _openAccount(AccountMode.register),
+                  onSignOut: () => setState(() {
+                    _account = null;
+                    _cartCount = 0;
+                    _favorites.clear();
+                  }),
                   onCartTap: () =>
                       _showMessage('Tu carrito tiene $_cartCount artículos'),
                   onAddProduct: () =>
@@ -204,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                                     category: _category,
                                     sort: _sort,
                                     favorites: _favorites,
-                                    signedIn: _signedIn,
+                                    signedIn: _account != null,
                                     onSortChanged: (value) =>
                                         setState(() => _sort = value),
                                     onClearFilters: () => setState(() {
@@ -248,11 +250,12 @@ class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.wide,
     required this.tablet,
-    required this.signedIn,
     required this.cartCount,
     required this.searchController,
     required this.onSearchChanged,
     required this.onAccountTap,
+    required this.account,
+    required this.onRegister,
     required this.onSignOut,
     required this.onCartTap,
     required this.onAddProduct,
@@ -260,11 +263,12 @@ class _TopBar extends StatelessWidget {
 
   final bool wide;
   final bool tablet;
-  final bool signedIn;
   final int cartCount;
   final TextEditingController searchController;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAccountTap;
+  final AccountProfile? account;
+  final VoidCallback onRegister;
   final VoidCallback onSignOut;
   final VoidCallback onCartTap;
   final VoidCallback onAddProduct;
@@ -303,7 +307,7 @@ class _TopBar extends StatelessWidget {
             const SizedBox(width: 22),
           ] else
             const Spacer(),
-          if (signedIn) ...[
+          if (account != null) ...[
             if (wide)
               TextButton.icon(
                 onPressed: onAddProduct,
@@ -347,10 +351,17 @@ class _TopBar extends StatelessWidget {
               ],
             ),
             PopupMenuButton<String>(
-              tooltip: 'Mi cuenta',
+              tooltip: 'Mi cuenta · ${account?.firstName}',
               onSelected: (_) => onSignOut(),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'salir', child: Text('Cerrar sesión')),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  enabled: false,
+                  child: Text('${account!.firstName} ${account!.lastName}'),
+                ),
+                const PopupMenuItem(
+                  value: 'salir',
+                  child: Text('Cerrar sesión'),
+                ),
               ],
               child: const Padding(
                 padding: EdgeInsets.all(8),
@@ -378,7 +389,7 @@ class _TopBar extends StatelessWidget {
                 icon: const Icon(Icons.person_outline_rounded),
               ),
             FilledButton(
-              onPressed: onAccountTap,
+              onPressed: onRegister,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.mustard,
                 foregroundColor: AppColors.espresso,
@@ -1340,70 +1351,6 @@ class _FooterLinkGroup extends StatelessWidget {
                   ),
                 ),
         ),
-    ],
-  );
-}
-
-class _AccountDialog extends StatefulWidget {
-  const _AccountDialog({required this.onContinue});
-  final VoidCallback onContinue;
-  @override
-  State<_AccountDialog> createState() => _AccountDialogState();
-}
-
-class _AccountDialogState extends State<_AccountDialog> {
-  bool _createAccount = false;
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: AppColors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-    title: Text(_createAccount ? 'Únete a Usus' : 'Qué bueno verte'),
-    content: SizedBox(
-      width: 360,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _createAccount
-                ? 'Crea tu cuenta para empezar a rentar.'
-                : 'Inicia sesión para rentar y publicar artículos.',
-          ),
-          const SizedBox(height: 18),
-          const TextField(
-            decoration: InputDecoration(
-              hintText: 'Correo electrónico',
-              prefixIcon: Icon(Icons.email_outlined),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const TextField(
-            obscureText: true,
-            decoration: InputDecoration(
-              hintText: 'Contraseña',
-              prefixIcon: Icon(Icons.lock_outline_rounded),
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => setState(() => _createAccount = !_createAccount),
-              child: Text(
-                _createAccount ? 'Ya tengo una cuenta' : 'Crear una cuenta',
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Ahora no'),
-      ),
-      FilledButton(
-        onPressed: widget.onContinue,
-        child: Text(_createAccount ? 'Crear cuenta' : 'Iniciar sesión'),
-      ),
     ],
   );
 }
