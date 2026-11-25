@@ -7,6 +7,7 @@ import '../../cart/data/cart_controller.dart';
 import '../../cart/presentation/cart_page.dart';
 import '../data/catalog_repository.dart';
 import '../domain/rental_product.dart';
+import 'publish_product_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.repository, required this.auth});
@@ -68,6 +69,7 @@ class _HomePageState extends State<HomePage> {
   List<RentalProduct> get _visibleProducts {
     final query = _searchController.text.trim().toLowerCase();
     final products = _products.where((product) {
+      if (!product.isAvailable) return false;
       final matchesCategory =
           _category == RentalCategory.all || product.category == _category;
       final matchesPrice =
@@ -110,6 +112,24 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => CartPage(cart: _cart, account: account),
       ),
     );
+  }
+
+  Future<void> _openPublishProduct() async {
+    final account = _account;
+    if (account == null) return;
+    final created = await Navigator.of(context).push<RentalProduct>(
+      MaterialPageRoute(
+        builder: (_) => PublishProductPage(
+          repository: widget.repository,
+          account: account,
+        ),
+      ),
+    );
+    if (!mounted || created == null) return;
+    await _loadProducts();
+    if (mounted) {
+      _showMessage('${created.name} publicado en el catálogo');
+    }
   }
 
   void _addToCart(RentalProduct product) {
@@ -175,8 +195,7 @@ class _HomePageState extends State<HomePage> {
                       _favorites.clear();
                     }),
                     onCartTap: _openCart,
-                    onAddProduct: () =>
-                        _showMessage('Aquí podrás publicar un artículo'),
+                    onAddProduct: _openPublishProduct,
                   ),
                 ),
                 if (!wide)

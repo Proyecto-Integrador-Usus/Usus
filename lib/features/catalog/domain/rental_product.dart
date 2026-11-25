@@ -25,6 +25,11 @@ class RentalProduct {
     required this.imageUrl,
     required this.imageIcon,
     this.isPopular = false,
+    this.description = '',
+    this.deposit = 0,
+    this.condition = 'Buen estado',
+    this.isAvailable = true,
+    this.imageUrls = const [],
   });
 
   final String id;
@@ -36,6 +41,15 @@ class RentalProduct {
   final String imageUrl;
   final IconData imageIcon;
   final bool isPopular;
+  final String description;
+  final double deposit;
+  final String condition;
+  final bool isAvailable;
+  final List<String> imageUrls;
+
+  List<String> get gallery => imageUrls.isNotEmpty
+      ? imageUrls
+      : (imageUrl.isNotEmpty ? [imageUrl] : const []);
 
   factory RentalProduct.fromJson(Map<String, dynamic> json) {
     final categoryName = (json['category'] as String? ?? '').toLowerCase();
@@ -53,6 +67,13 @@ class RentalProduct {
     final id = json['id'];
     final price = json['price_per_day'];
     final rating = json['rating'];
+    final deposit = json['deposit'];
+    final rawUrls = json['image_urls'];
+    final parsedUrls = rawUrls is List
+        ? rawUrls.whereType<String>().where((u) => u.isNotEmpty).toList()
+        : const <String>[];
+    final coverUrl = json['image_url'] as String? ??
+        (parsedUrls.isNotEmpty ? parsedUrls.first : '');
     return RentalProduct(
       id: id.toString(),
       name: json['name'] as String? ?? 'Artículo en renta',
@@ -60,9 +81,30 @@ class RentalProduct {
       pricePerDay: price is num ? price.toDouble() : 0,
       location: json['location'] as String? ?? 'Ubicación por confirmar',
       rating: rating is num ? rating.toDouble() : 0,
-      imageUrl: json['image_url'] as String? ?? '',
+      imageUrl: coverUrl,
       imageIcon: category.icon,
       isPopular: json['is_popular'] as bool? ?? false,
+      description: json['description'] as String? ?? '',
+      deposit: deposit is num ? deposit.toDouble() : 0,
+      condition: json['condition'] as String? ?? 'Buen estado',
+      isAvailable: json['is_available'] as bool? ?? true,
+      imageUrls: parsedUrls,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'category': category.name,
+    'price_per_day': pricePerDay,
+    'location': location,
+    'rating': rating,
+    'image_url': imageUrl,
+    'image_urls': gallery,
+    'is_popular': isPopular,
+    'description': description,
+    'deposit': deposit,
+    'condition': condition,
+    'is_available': isAvailable,
+  };
 }

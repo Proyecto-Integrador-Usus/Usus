@@ -125,4 +125,77 @@ void main() {
       },
     );
   }
+
+  for (final wide in [false, true]) {
+    testWidgets(
+      'Publicar artículo solo disponible tras iniciar sesión en ${wide ? 'escritorio' : 'móvil'}',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = wide
+            ? const Size(1280, 900)
+            : const Size(390, 844);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(UsusApp(auth: DemoAuthRepository()));
+        await tester.pumpAndSettle();
+
+        Future<void> tap(Finder target) async {
+          await tester.ensureVisible(target);
+          await tester.tap(target);
+          await tester.pumpAndSettle();
+        }
+
+        final publishButton = wide
+            ? find.text('Publicar artículo')
+            : find.byTooltip('Publicar artículo');
+
+        // Sin sesión iniciada, el botón + / Publicar artículo no aparece.
+        expect(publishButton, findsNothing);
+
+        // Registrar usuario para iniciar sesión.
+        await tap(find.text(wide ? 'Crear cuenta' : 'Crear'));
+        final authFields = find.byType(TextFormField);
+        final authValues = [
+          'Juan',
+          'Arriaga',
+          'Av. Universidad 940, Centro, Aguascalientes',
+          'juan.pub@example.org',
+          'Clave1234',
+          'Clave1234',
+        ];
+        for (var i = 0; i < authValues.length; i++) {
+          await tester.enterText(authFields.at(i), authValues[i]);
+        }
+        await tap(find.byType(ElevatedButton));
+
+        // Abrir formulario de publicación.
+        await tap(publishButton);
+        expect(find.text('Publicar artículo en renta'), findsOneWidget);
+
+        // Validar campos vacíos (título y descripción).
+        await tap(find.byType(ElevatedButton));
+        expect(find.text('Completa este campo.'), findsNWidgets(2));
+
+        // Llenar título, descripción, precio y depósito.
+        final formFields = find.byType(TextFormField);
+        // 0: URL de imagen, 1: Título, 2: Descripción, 3: Precio, 4: Depósito, 5: Ubicación
+        await tester.enterText(
+          formFields.at(1),
+          'Tablón rectangular para 8 personas',
+        );
+        await tester.enterText(
+          formFields.at(2),
+          'Tablón plegable resistente para eventos y fiestas con mantel.',
+        );
+        await tester.enterText(formFields.at(3), '150');
+        await tester.enterText(formFields.at(4), '300');
+
+        await tap(find.text('Zona Norte'));
+        await tap(find.byType(ElevatedButton));
+
+        // El nuevo producto aparece en el catálogo principal.
+        expect(find.text('Tablón rectangular para 8 personas'), findsOneWidget);
+      },
+    );
+  }
 }

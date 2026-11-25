@@ -4,8 +4,17 @@ import '../domain/rental_product.dart';
 import 'catalog_repository.dart';
 
 class DemoCatalogRepository implements CatalogRepository {
+  final List<RentalProduct> _products = List.of(demoProducts);
+
   @override
-  Future<List<RentalProduct>> getProducts() async => demoProducts;
+  Future<List<RentalProduct>> getProducts() async =>
+      List.unmodifiable(_products);
+
+  @override
+  Future<RentalProduct> addProduct(RentalProduct product) async {
+    _products.insert(0, product);
+    return product;
+  }
 }
 
 const demoProducts = <RentalProduct>[
