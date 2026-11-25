@@ -5,8 +5,10 @@ import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/account_page.dart';
 import '../../cart/data/cart_controller.dart';
 import '../../cart/presentation/cart_page.dart';
+import '../../rentals/domain/rental_period.dart';
 import '../data/catalog_repository.dart';
 import '../domain/rental_product.dart';
+import 'product_details_page.dart';
 import 'publish_product_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -132,8 +134,24 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _addToCart(RentalProduct product) {
-    _cart.addProduct(product);
+  Future<void> _openDetails(RentalProduct product) async {
+    final period = await Navigator.of(context).push<RentalPeriod>(
+      MaterialPageRoute(builder: (_) => ProductDetailsPage(
+        product: product,
+        signedIn: _account != null,
+        signIn: () async {
+          await _openAccount(AccountMode.login);
+          return mounted && _account != null;
+        },
+      )),
+    );
+    if (mounted && period != null && _account != null) {
+      _addToCart(product, period: period);
+    }
+  }
+
+  void _addToCart(RentalProduct product, {RentalPeriod? period}) {
+    _cart.addProduct(product, period: period);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -269,9 +287,7 @@ class _HomePageState extends State<HomePage> {
                                         _favorites.remove(product.id);
                                     }),
                                     onAddToCart: _addToCart,
-                                    onDetails: (product) => _showMessage(
-                                      '${product.name} · \$${product.pricePerDay.toStringAsFixed(0)} por día',
-                                    ),
+                                    onDetails: _openDetails,
                                   ),
                                 ),
                               ],

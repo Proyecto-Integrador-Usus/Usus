@@ -21,6 +21,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-001',
     name: 'Taladro percutor profesional',
+    description: 'Para perforar madera o mampostería. Incluye empuñadura auxiliar y estuche de transporte.',
     category: RentalCategory.construction,
     pricePerDay: 180,
     location: 'Roma Norte, CDMX',
@@ -32,6 +33,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-002',
     name: 'Carpa para evento · 6 × 3 m',
+    description: 'Carpa de seis por tres metros para dar sombra en eventos. Incluye estructura, cubierta y bolsa de transporte.',
     category: RentalCategory.party,
     pricePerDay: 850,
     location: 'Del Valle, CDMX',
@@ -43,6 +45,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-003',
     name: 'Hidrolavadora de alta presión',
+    description: 'Para lavar patios y superficies exteriores. Incluye manguera y pistola de presión.',
     category: RentalCategory.plumbing,
     pricePerDay: 320,
     location: 'Coyoacán, CDMX',
@@ -53,6 +56,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-004',
     name: 'Bocina amplificada con micrófono',
+    description: 'Equipo de sonido para reuniones. Incluye micrófono y cable de alimentación.',
     category: RentalCategory.audio,
     pricePerDay: 490,
     location: 'Narvarte, CDMX',
@@ -63,6 +67,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-005',
     name: 'Rotomartillo SDS Plus',
+    description: 'Rotomartillo para trabajos en concreto. Incluye empuñadura lateral y maletín.',
     category: RentalCategory.construction,
     pricePerDay: 240,
     location: 'Condesa, CDMX',
@@ -73,6 +78,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-006',
     name: 'Juego de mesas y sillas (10 personas)',
+    description: 'Conjunto de mesas y sillas plegables con espacio para diez personas.',
     category: RentalCategory.party,
     pricePerDay: 560,
     location: 'Escandón, CDMX',
@@ -83,6 +89,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-007',
     name: 'Desbrozadora para jardín',
+    description: 'Desbrozadora para recortar pasto y maleza en bordes de jardín. Incluye arnés.',
     category: RentalCategory.gardening,
     pricePerDay: 390,
     location: 'San Ángel, CDMX',
@@ -93,6 +100,7 @@ const demoProducts = <RentalProduct>[
   RentalProduct(
     id: 'p-008',
     name: 'Escalera de extensión de 7 m',
+    description: 'Escalera extensible de dos tramos para trabajos de mantenimiento.',
     category: RentalCategory.tools,
     pricePerDay: 210,
     location: 'Portales, CDMX',

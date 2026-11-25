@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/format/money.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/cart_controller.dart';
@@ -14,8 +15,6 @@ class CartPage extends StatelessWidget {
 
   final CartController cart;
   final AccountProfile account;
-
-  String _money(double amount) => '\$${amount.toStringAsFixed(0)} MXN';
 
   Future<void> _confirmRental(BuildContext context) async {
     await showDialog<void>(
@@ -39,12 +38,12 @@ class CartPage extends StatelessWidget {
             Text(
               '• ${cart.totalUnits} ${cart.totalUnits == 1 ? 'unidad' : 'unidades'} seleccionadas\n'
               '• Modalidad: ${cart.deliveryMethod.label}\n'
-              '• Total estimado: ${_money(cart.total)}',
+              '• Total estimado: ${pesos(cart.total)}',
               style: const TextStyle(height: 1.5),
             ),
             const SizedBox(height: 12),
             const Text(
-              'En el siguiente paso podrás elegir fechas exactas, horarios de entrega/recolección y revisar el depósito en garantía.',
+              'El total estimado incluye la renta y la modalidad de entrega seleccionada.',
               style: TextStyle(fontSize: 12, color: AppColors.muted),
             ),
           ],
@@ -60,7 +59,7 @@ class CartPage extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text(
-                    'Solicitud de renta preparada. Próximamente: selección de fechas y pago.',
+                    'Resumen de renta preparado.',
                   ),
                 ),
               );
@@ -122,18 +121,18 @@ class CartPage extends StatelessWidget {
                         _SectionHeader(
                           title: 'Artículos seleccionados',
                           subtitle:
-                              '${cart.totalUnits} ${cart.totalUnits == 1 ? 'unidad' : 'unidades'} en ${items.length} ${items.length == 1 ? 'producto' : 'productos'}',
+                              '${cart.totalUnits} ${cart.totalUnits == 1 ? 'unidad' : 'unidades'} en ${cart.distinctCount} ${cart.distinctCount == 1 ? 'producto' : 'productos'}',
                         ),
                         const SizedBox(height: 14),
                         for (final item in items) ...[
                           _CartItemCard(
                             item: item,
                             onQuantityChanged: (q) =>
-                                cart.updateQuantity(item.product.id, q),
+                                cart.updateQuantity(item.lineId, q),
                             onDaysChanged: (d) =>
-                                cart.updateDays(item.product.id, d),
+                                cart.updateDays(item.lineId, d),
                             onRemove: () =>
-                                cart.removeProduct(item.product.id),
+                                cart.removeProduct(item.lineId),
                           ),
                           const SizedBox(height: 12),
                         ],
@@ -311,7 +310,7 @@ class _CartItemCard extends StatelessWidget {
                   const SizedBox(width: 3),
                   Expanded(
                     child: Text(
-                      '${product.location} · \$${product.pricePerDay.toStringAsFixed(0)} / día',
+                      '${product.location} · ${pesos(product.pricePerDay)} / día',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.muted,
@@ -333,7 +332,9 @@ class _CartItemCard extends StatelessWidget {
                     onDecrement: () => onQuantityChanged(item.quantity - 1),
                     onIncrement: () => onQuantityChanged(item.quantity + 1),
                   ),
-                  _StepperControl(
+                  if (item.period != null)
+                    Text('${item.period!.label} · ${item.days} ${item.days == 1 ? 'día' : 'días'}')
+                  else _StepperControl(
                     label: 'Días',
                     valueText: '${item.days} ${item.days == 1 ? 'día' : 'días'}',
                     onDecrement: item.days > 1
@@ -342,7 +343,7 @@ class _CartItemCard extends StatelessWidget {
                     onIncrement: () => onDaysChanged(item.days + 1),
                   ),
                   Text(
-                    '\$${item.subtotal.toStringAsFixed(0)} MXN',
+                    pesos(item.subtotal),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
@@ -516,7 +517,7 @@ class _DeliveryCard extends StatelessWidget {
                   secondary: Text(
                     method.baseCost == 0
                         ? 'Gratis'
-                        : '\$${method.baseCost.toStringAsFixed(0)} MXN',
+                        : pesos(method.baseCost),
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       color: AppColors.espresso,
@@ -560,19 +561,19 @@ class _OrderSummaryCard extends StatelessWidget {
           _SummaryRow(
             label:
                 'Artículos (${cart.totalUnits} ${cart.totalUnits == 1 ? 'unidad' : 'unidades'})',
-            value: '\$${cart.rentalSubtotal.toStringAsFixed(0)} MXN',
+            value: pesos(cart.rentalSubtotal),
           ),
           const SizedBox(height: 10),
           _SummaryRow(
             label: 'Envío',
             value: cart.shippingCost == 0
                 ? 'Gratis'
-                : '\$${cart.shippingCost.toStringAsFixed(0)} MXN',
+                : pesos(cart.shippingCost),
           ),
           const SizedBox(height: 10),
-          const _SummaryRow(
-            label: 'Depósito en garantía',
-            value: 'Por confirmar',
+          _SummaryRow(
+            label: 'Depósito (por separado)',
+            value: pesos(cart.depositTotal),
             mutedValue: true,
           ),
           const Padding(
@@ -592,7 +593,7 @@ class _OrderSummaryCard extends StatelessWidget {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    '\$${cart.total.toStringAsFixed(0)} MXN',
+                    pesos(cart.total),
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -616,7 +617,7 @@ class _OrderSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Después podrás ajustar fechas exactas, horarios de entrega/recolección y ver el desglose completo antes de confirmar.',
+            'El depósito en garantía se consulta en los detalles de cada artículo.',
             style: TextStyle(
               fontSize: 11,
               height: 1.45,

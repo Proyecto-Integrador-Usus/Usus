@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/catalog/data/demo_catalog_repository.dart';
@@ -18,6 +20,9 @@ class UsusApp extends StatelessWidget {
     return MaterialApp(
       title: 'Usus | Renta lo que necesitas',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('es', 'MX'),
+      supportedLocales: const [Locale('es', 'MX')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: AppTheme.light,
       home: HomePage(repository: DemoCatalogRepository(), auth: auth),
     );
