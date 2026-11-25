@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/account_page.dart';
+import '../../cart/data/cart_controller.dart';
+import '../../cart/presentation/cart_page.dart';
 import '../data/catalog_repository.dart';
 import '../domain/rental_product.dart';
 
@@ -24,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   AccountProfile? _account;
   bool _loading = true;
   String? _catalogError;
-  int _cartCount = 0;
+  final _cart = CartController();
   List<RentalProduct> _products = [];
   final Set<String> _favorites = {};
 
@@ -59,6 +61,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _cart.dispose();
     super.dispose();
   }
 
@@ -99,6 +102,31 @@ class _HomePageState extends State<HomePage> {
     if (mounted && account != null) setState(() => _account = account);
   }
 
+  Future<void> _openCart() async {
+    final account = _account;
+    if (account == null) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CartPage(cart: _cart, account: account),
+      ),
+    );
+  }
+
+  void _addToCart(RentalProduct product) {
+    _cart.addProduct(product);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${product.name} agregado al carrito'),
+          action: SnackBarAction(
+            label: 'Ver carrito',
+            onPressed: _openCart,
+          ),
+        ),
+      );
+  }
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -130,24 +158,26 @@ class _HomePageState extends State<HomePage> {
             bottom: false,
             child: Column(
               children: [
-                _TopBar(
-                  wide: wide,
-                  tablet: tablet,
-                  cartCount: _cartCount,
-                  searchController: _searchController,
-                  onSearchChanged: (_) => setState(() {}),
-                  account: _account,
-                  onAccountTap: () => _openAccount(AccountMode.login),
-                  onRegister: () => _openAccount(AccountMode.register),
-                  onSignOut: () => setState(() {
-                    _account = null;
-                    _cartCount = 0;
-                    _favorites.clear();
-                  }),
-                  onCartTap: () =>
-                      _showMessage('Tu carrito tiene $_cartCount artículos'),
-                  onAddProduct: () =>
-                      _showMessage('Aquí podrás publicar un artículo'),
+                ListenableBuilder(
+                  listenable: _cart,
+                  builder: (context, _) => _TopBar(
+                    wide: wide,
+                    tablet: tablet,
+                    cartCount: _cart.totalUnits,
+                    searchController: _searchController,
+                    onSearchChanged: (_) => setState(() {}),
+                    account: _account,
+                    onAccountTap: () => _openAccount(AccountMode.login),
+                    onRegister: () => _openAccount(AccountMode.register),
+                    onSignOut: () => setState(() {
+                      _account = null;
+                      _cart.clear();
+                      _favorites.clear();
+                    }),
+                    onCartTap: _openCart,
+                    onAddProduct: () =>
+                        _showMessage('Aquí podrás publicar un artículo'),
+                  ),
                 ),
                 if (!wide)
                   _MobileSearch(
@@ -219,8 +249,7 @@ class _HomePageState extends State<HomePage> {
                                       if (!_favorites.add(product.id))
                                         _favorites.remove(product.id);
                                     }),
-                                    onAddToCart: () =>
-                                        setState(() => _cartCount++),
+                                    onAddToCart: _addToCart,
                                     onDetails: (product) => _showMessage(
                                       '${product.name} · \$${product.pricePerDay.toStringAsFixed(0)} por día',
                                     ),
@@ -750,7 +779,7 @@ class _CatalogSection extends StatelessWidget {
   final ValueChanged<String> onSortChanged;
   final VoidCallback onClearFilters;
   final ValueChanged<RentalProduct> onFavorite;
-  final VoidCallback onAddToCart;
+  final ValueChanged<RentalProduct> onAddToCart;
   final ValueChanged<RentalProduct> onDetails;
 
   @override
@@ -843,7 +872,7 @@ class _CatalogSection extends StatelessWidget {
                   isFavorite: favorites.contains(product.id),
                   signedIn: signedIn,
                   onFavorite: () => onFavorite(product),
-                  onAddToCart: onAddToCart,
+                  onAddToCart: () => onAddToCart(product),
                   onDetails: () => onDetails(product),
                 );
               },
