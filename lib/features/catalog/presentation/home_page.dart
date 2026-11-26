@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/account_page.dart';
 import '../../cart/data/cart_controller.dart';
 import '../../cart/presentation/cart_page.dart';
+import '../../profile/presentation/profile_page.dart';
 import '../../rentals/data/rentals_controller.dart';
 import '../../rentals/domain/rental_period.dart';
 import '../../rentals/presentation/my_rentals_page.dart';
@@ -14,10 +16,16 @@ import 'product_details_page.dart';
 import 'publish_product_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.repository, required this.auth});
+  const HomePage({
+    super.key,
+    required this.repository,
+    required this.auth,
+    required this.settings,
+  });
 
   final CatalogRepository repository;
   final AuthRepository auth;
+  final AppSettings settings;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -27,14 +35,22 @@ class _HomePageState extends State<HomePage> {
   final _searchController = TextEditingController();
   RentalCategory _category = RentalCategory.all;
   RangeValues _priceRange = const RangeValues(0, 1000);
-  String _sort = 'Recomendados';
+  String? _sortOverride;
+  String get _sort => _sortOverride ?? widget.settings.catalogSort;
   AccountProfile? _account;
   bool _loading = true;
   String? _catalogError;
   final _cart = CartController();
-  final _rentals = RentalsController();
+  final _accountRentals = <String?, RentalsController>{};
+  String? get _accountKey => _account?.email.trim().toLowerCase();
+  RentalsController get _rentals =>
+      _accountRentals.putIfAbsent(_accountKey, RentalsController.new);
   List<RentalProduct> _products = [];
-  final Set<String> _favorites = {};
+  final _accountFavorites = <String, Set<String>>{};
+  final _guestFavorites = <String>{};
+  Set<String> get _favorites => _accountKey == null
+      ? _guestFavorites
+      : _accountFavorites.putIfAbsent(_accountKey!, () => <String>{});
 
   @override
   void initState() {
@@ -68,7 +84,9 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _searchController.dispose();
     _cart.dispose();
-    _rentals.dispose();
+    for (final rentals in _accountRentals.values) {
+      rentals.dispose();
+    }
     super.dispose();
   }
 
@@ -107,7 +125,42 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => AccountPage(repository: widget.auth, initialMode: mode),
       ),
     );
-    if (mounted && account != null) setState(() => _account = account);
+    if (mounted && account != null) {
+      setState(() {
+        _account = account;
+        _favorites.addAll(_guestFavorites);
+        _guestFavorites.clear();
+      });
+    }
+  }
+
+  Future<void> _openProfile() async {
+    final account = _account;
+    if (account == null) return;
+    final signOut = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ProfilePage(
+          account: account,
+          settings: widget.settings,
+          rentals: _rentals,
+          products: _products,
+          favorites: _favorites,
+          onRemoveFavorite: (product) =>
+              setState(() => _favorites.remove(product.id)),
+          onOpenProduct: _openDetails,
+          onSortChanged: (value) {
+            widget.settings.setCatalogSort(value);
+            setState(() => _sortOverride = null);
+          },
+        ),
+      ),
+    );
+    if (mounted && signOut == true) {
+      setState(() {
+        _account = null;
+        _cart.clear();
+      });
+    }
   }
 
   Future<void> _openCart() async {
@@ -172,6 +225,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _addToCart(RentalProduct product, {RentalPeriod? period}) {
+    if (_cart.isEmpty) {
+      _cart.setDeliveryMethod(widget.settings.preferredDelivery);
+    }
     _cart.addProduct(product, period: period);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -229,12 +285,7 @@ class _HomePageState extends State<HomePage> {
                     account: _account,
                     onAccountTap: () => _openAccount(AccountMode.login),
                     onRegister: () => _openAccount(AccountMode.register),
-                    onSignOut: () => setState(() {
-                      _account = null;
-                      _cart.clear();
-                      _rentals.clear();
-                      _favorites.clear();
-                    }),
+                    onProfileTap: _openProfile,
                     onCartTap: _openCart,
                     onRentalsTap: _openMyRentals,
                     onAddProduct: _openPublishProduct,
@@ -304,7 +355,7 @@ class _HomePageState extends State<HomePage> {
                                           favorites: _favorites,
                                           signedIn: _account != null,
                                           onSortChanged: (value) =>
-                                              setState(() => _sort = value),
+                                              setState(() => _sortOverride = value),
                                           onClearFilters: () => setState(() {
                                             _category = RentalCategory.all;
                                             _priceRange = const RangeValues(
@@ -312,11 +363,12 @@ class _HomePageState extends State<HomePage> {
                                               1000,
                                             );
                                             _searchController.clear();
-                                            _sort = 'Recomendados';
+                                            _sortOverride = null;
                                           }),
                                           onFavorite: (product) => setState(() {
-                                            if (!_favorites.add(product.id))
+                                            if (!_favorites.add(product.id)) {
                                               _favorites.remove(product.id);
+                                            }
                                           }),
                                           onAddToCart: _addToCart,
                                           onDetails: _openDetails,
@@ -362,7 +414,7 @@ class _TopBar extends StatelessWidget {
     required this.onAccountTap,
     required this.account,
     required this.onRegister,
-    required this.onSignOut,
+    required this.onProfileTap,
     required this.onCartTap,
     required this.onRentalsTap,
     required this.onAddProduct,
@@ -377,7 +429,7 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onAccountTap;
   final AccountProfile? account;
   final VoidCallback onRegister;
-  final VoidCallback onSignOut;
+  final VoidCallback onProfileTap;
   final VoidCallback onCartTap;
   final VoidCallback onRentalsTap;
   final VoidCallback onAddProduct;
@@ -385,7 +437,7 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
+      color: context.colors.surface,
       padding: EdgeInsets.symmetric(
         horizontal: wide
             ? 36
@@ -401,7 +453,7 @@ class _TopBar extends StatelessWidget {
               builder: (context) => IconButton(
                 tooltip: 'Categorías',
                 onPressed: () => Scaffold.of(context).openDrawer(),
-                icon: const Icon(Icons.menu_rounded, color: AppColors.espresso),
+                icon: Icon(Icons.menu_rounded, color: context.colors.onSurface),
               ),
             ),
           _Brand(),
@@ -423,7 +475,7 @@ class _TopBar extends StatelessWidget {
                 icon: const Icon(Icons.add_circle_outline_rounded, size: 19),
                 label: const Text('Publicar artículo'),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.espresso,
+                  foregroundColor: context.colors.onSurface,
                 ),
               )
             else
@@ -449,7 +501,7 @@ class _TopBar extends StatelessWidget {
                     top: 2,
                     child: CircleAvatar(
                       radius: 9,
-                      backgroundColor: AppColors.espresso,
+                      backgroundColor: context.brandPanel,
                       child: Text(
                         '$rentalsCount',
                         style: const TextStyle(
@@ -488,39 +540,16 @@ class _TopBar extends StatelessWidget {
                   ),
               ],
             ),
-            PopupMenuButton<String>(
-              tooltip: 'Mi cuenta · ${account?.firstName}',
-              onSelected: (value) {
-                if (value == 'rentas') {
-                  onRentalsTap();
-                } else {
-                  onSignOut();
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  enabled: false,
-                  child: Text('${account!.firstName} ${account!.lastName}'),
-                ),
-                const PopupMenuItem(
-                  value: 'rentas',
-                  child: Text('Mis rentas y envíos'),
-                ),
-                const PopupMenuItem(
-                  value: 'salir',
-                  child: Text('Cerrar sesión'),
-                ),
-              ],
-              child: Padding(
-                padding: EdgeInsets.all(wide ? 8 : 4),
-                child: const CircleAvatar(
-                  radius: 17,
-                  backgroundColor: AppColors.ivory,
-                  child: Icon(
-                    Icons.person_outline_rounded,
-                    size: 20,
-                    color: AppColors.espresso,
-                  ),
+            IconButton(
+              tooltip: 'Mi perfil',
+              onPressed: onProfileTap,
+              icon: CircleAvatar(
+                radius: 17,
+                backgroundColor: context.colors.surfaceContainerLow,
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  size: 20,
+                  color: context.colors.onSurface,
                 ),
               ),
             ),
@@ -597,11 +626,11 @@ class _SearchField extends StatelessWidget {
     onChanged: onChanged,
     decoration: InputDecoration(
       hintText: '¿Qué necesitas rentar?',
-      prefixIcon: const Icon(Icons.search_rounded, color: AppColors.espresso),
-      suffixIcon: const Icon(
+      prefixIcon: Icon(Icons.search_rounded, color: context.colors.onSurface),
+      suffixIcon: Icon(
         Icons.tune_rounded,
         size: 20,
-        color: AppColors.tan,
+        color: context.colors.secondary,
       ),
     ),
   );
@@ -627,10 +656,15 @@ class _HeroBanner extends StatelessWidget {
     width: double.infinity,
     constraints: const BoxConstraints(minHeight: 224),
     decoration: BoxDecoration(
-      color: AppColors.mustard,
+      color: context.goldPanel,
       borderRadius: BorderRadius.circular(10),
-      gradient: const LinearGradient(
-        colors: [Color(0xFFD9B944), AppColors.mustard],
+      gradient: LinearGradient(
+        colors: [
+          context.colors.brightness == Brightness.dark
+              ? const Color(0xFF483B20)
+              : const Color(0xFFD9B944),
+          context.goldPanel,
+        ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
@@ -753,8 +787,8 @@ class _CategorySidebar extends StatelessWidget {
                     category.icon,
                     size: 19,
                     color: category == selected
-                        ? AppColors.espresso
-                        : AppColors.muted,
+                        ? context.colors.onSurface
+                        : context.colors.onSurfaceVariant,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -776,7 +810,7 @@ class _CategorySidebar extends StatelessWidget {
           ),
         ),
       const SizedBox(height: 20),
-      const Divider(color: AppColors.border),
+      Divider(color: context.colors.outlineVariant),
       const SizedBox(height: 12),
       const Text(
         'Precio por día',
@@ -799,11 +833,11 @@ class _CategorySidebar extends StatelessWidget {
         children: [
           Text(
             '\$${priceRange.start.round()}',
-            style: const TextStyle(color: AppColors.muted, fontSize: 12),
+            style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 12),
           ),
           Text(
             '\$${priceRange.end.round()} MXN',
-            style: const TextStyle(color: AppColors.muted, fontSize: 12),
+            style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 12),
           ),
         ],
       ),
@@ -811,13 +845,13 @@ class _CategorySidebar extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.ivory,
+          color: context.colors.surfaceContainerLow,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Row(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.verified_user_outlined, size: 20, color: AppColors.tan),
+            Icon(Icons.verified_user_outlined, size: 20, color: context.colors.secondary),
             SizedBox(width: 9),
             Expanded(
               child: Text(
@@ -842,7 +876,7 @@ class _CategoryChips extends StatelessWidget {
     child: ListView.separated(
       scrollDirection: Axis.horizontal,
       itemCount: RentalCategory.values.length,
-      separatorBuilder: (_, __) => const SizedBox(width: 8),
+      separatorBuilder: (_, _) => const SizedBox(width: 8),
       itemBuilder: (context, index) {
         final category = RentalCategory.values[index];
         final active = category == selected;
@@ -851,17 +885,17 @@ class _CategoryChips extends StatelessWidget {
           avatar: Icon(
             category.icon,
             size: 16,
-            color: active ? AppColors.espresso : AppColors.muted,
+            color: active ? context.colors.onSurface : context.colors.onSurfaceVariant,
           ),
           selected: active,
           onSelected: (_) => onSelected(category),
           selectedColor: AppColors.mustard.withValues(alpha: .3),
-          backgroundColor: AppColors.white,
+          backgroundColor: context.colors.surface,
           side: BorderSide(
-            color: active ? AppColors.mustard : AppColors.border,
+            color: active ? AppColors.mustard : context.colors.outlineVariant,
           ),
           labelStyle: TextStyle(
-            color: AppColors.espresso,
+            color: context.colors.onSurface,
             fontWeight: active ? FontWeight.w700 : FontWeight.w500,
             fontSize: 12,
           ),
@@ -923,7 +957,7 @@ class _CatalogSection extends StatelessWidget {
                   loading
                       ? 'Cargando catálogo…'
                       : '${products.length} artículos disponibles cerca de ti',
-                  style: const TextStyle(color: AppColors.muted, fontSize: 13),
+                  style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 13),
                 ),
               ],
             ),
@@ -933,19 +967,9 @@ class _CatalogSection extends StatelessWidget {
             child: DropdownButton<String>(
               value: sort,
               borderRadius: BorderRadius.circular(14),
-              items: const [
-                DropdownMenuItem(
-                  value: 'Recomendados',
-                  child: Text('Recomendados'),
-                ),
-                DropdownMenuItem(
-                  value: 'Menor precio',
-                  child: Text('Menor precio'),
-                ),
-                DropdownMenuItem(
-                  value: 'Mejor valorados',
-                  child: Text('Mejor valorados'),
-                ),
+              items: [
+                for (final option in AppSettings.sortOptions)
+                  DropdownMenuItem(value: option, child: Text(option)),
               ],
               onChanged: (value) {
                 if (value != null) onSortChanged(value);
@@ -1020,7 +1044,7 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: AppColors.white,
+    color: context.colors.surface,
     borderRadius: BorderRadius.circular(10),
     child: InkWell(
       borderRadius: BorderRadius.circular(10),
@@ -1028,7 +1052,7 @@ class _ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border.withValues(alpha: .8)),
+          border: Border.all(color: context.colors.outlineVariant.withValues(alpha: .8)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x0B3B2F2F),
@@ -1049,7 +1073,7 @@ class _ProductCard extends StatelessWidget {
                   child: Image.network(
                     product.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _ProductPlaceholder(
+                    errorBuilder: (_, _, _) => _ProductPlaceholder(
                       icon: product.imageIcon,
                       category: product.category,
                     ),
@@ -1077,7 +1101,7 @@ class _ProductCard extends StatelessWidget {
                       ),
                       child: const Text(
                         'Popular',
-                        style: TextStyle(
+                        style: TextStyle(color: AppColors.espresso,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
@@ -1088,7 +1112,7 @@ class _ProductCard extends StatelessWidget {
                   right: 12,
                   top: 12,
                   child: Material(
-                    color: AppColors.white,
+                    color: context.colors.surface,
                     shape: const CircleBorder(),
                     child: IconButton(
                       visualDensity: VisualDensity.compact,
@@ -1103,7 +1127,7 @@ class _ProductCard extends StatelessWidget {
                         size: 19,
                         color: isFavorite
                             ? Colors.redAccent
-                            : AppColors.espresso,
+                            : context.colors.onSurface,
                       ),
                     ),
                   ),
@@ -1121,10 +1145,10 @@ class _ProductCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             product.category.label.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               letterSpacing: .8,
-                              color: AppColors.tan,
+                              color: context.colors.secondary,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -1157,10 +1181,10 @@ class _ProductCard extends StatelessWidget {
                     const SizedBox(height: 7),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
                           size: 15,
-                          color: AppColors.muted,
+                          color: context.colors.onSurfaceVariant,
                         ),
                         const SizedBox(width: 3),
                         Expanded(
@@ -1168,26 +1192,26 @@ class _ProductCard extends StatelessWidget {
                             product.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.muted,
+                              color: context.colors.onSurfaceVariant,
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           '\$${product.pricePerDay.toStringAsFixed(0)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.espresso,
+                            color: context.colors.onSurface,
                           ),
                         ),
-                        const Text(
+                        Text(
                           ' / día',
                           style: TextStyle(
                             fontSize: 10,
-                            color: AppColors.muted,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -1205,8 +1229,8 @@ class _ProductCard extends StatelessWidget {
                               ),
                               label: const Text('Agregar al carrito'),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.espresso,
-                                side: const BorderSide(color: AppColors.border),
+                                foregroundColor: context.colors.onSurface,
+                                side: BorderSide(color: context.colors.outlineVariant),
                                 textStyle: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -1219,8 +1243,8 @@ class _ProductCard extends StatelessWidget {
                           : OutlinedButton(
                               onPressed: onDetails,
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.espresso,
-                                side: const BorderSide(color: AppColors.border),
+                                foregroundColor: context.colors.onSurface,
+                                side: BorderSide(color: context.colors.outlineVariant),
                                 textStyle: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -1249,19 +1273,19 @@ class _ProductPlaceholder extends StatelessWidget {
   final RentalCategory category;
   @override
   Widget build(BuildContext context) => Container(
-    color: AppColors.ivory,
+    color: context.colors.surfaceContainerLow,
     child: Stack(
       alignment: Alignment.center,
       children: [
-        Icon(icon, size: 82, color: AppColors.tan.withValues(alpha: .65)),
+        Icon(icon, size: 82, color: context.colors.secondary.withValues(alpha: .65)),
         Positioned(
           left: 12,
           bottom: 10,
           child: Text(
             category.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.espresso,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1280,16 +1304,16 @@ class _EmptyResults extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 54),
       child: Column(
         children: [
-          const Icon(Icons.search_off_rounded, size: 42, color: AppColors.tan),
+          Icon(Icons.search_off_rounded, size: 42, color: context.colors.secondary),
           const SizedBox(height: 12),
           const Text(
             'No encontramos artículos',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 5),
-          const Text(
+          Text(
             'Prueba otra búsqueda o ajusta tus filtros.',
-            style: TextStyle(color: AppColors.muted),
+            style: TextStyle(color: context.colors.onSurfaceVariant),
           ),
           TextButton(
             onPressed: onClear,
@@ -1311,9 +1335,9 @@ class _CatalogError extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 54),
       child: Column(
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 42, color: AppColors.tan),
+          Icon(Icons.wifi_off_rounded, size: 42, color: context.colors.secondary),
           const SizedBox(height: 12),
-          Text(message, style: const TextStyle(color: AppColors.muted)),
+          Text(message, style: TextStyle(color: context.colors.onSurfaceVariant)),
           const SizedBox(height: 8),
           OutlinedButton(onPressed: onRetry, child: const Text('Reintentar')),
         ],
@@ -1333,7 +1357,7 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    color: AppColors.espresso,
+    color: context.brandPanel,
     padding: EdgeInsets.fromLTRB(
       horizontalPadding,
       32,

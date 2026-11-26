@@ -46,7 +46,7 @@ void main() {
           : find.byTooltip('Publicar artículo');
       await tap(submit);
       expect(publish, findsOneWidget);
-      await tap(find.byType(PopupMenuButton<String>));
+      await tap(find.byTooltip('Mi perfil'));
       await tap(find.text('Cerrar sesión'));
       await tap(
         wide ? find.text('Iniciar sesión') : find.byTooltip('Iniciar sesión'),
@@ -290,6 +290,15 @@ void main() {
           find.text('Faltaba una extensión en la caja.'),
           findsOneWidget,
         );
+
+        await tap(find.byTooltip('Volver al inicio'));
+        await tap(find.byTooltip('Mi perfil'));
+        await tap(find.widgetWithText(ListTile, '1 renta registrada'));
+        expect(find.textContaining('Finalizada'), findsOneWidget);
+        if (!wide) await tap(find.byTooltip('Menú del perfil'));
+        await tap(find.text('Facturación'));
+        await tap(find.byType(ExpansionTile));
+        expect(find.textContaining('Renta · \$180 MXN'), findsOneWidget);
       },
     );
   }

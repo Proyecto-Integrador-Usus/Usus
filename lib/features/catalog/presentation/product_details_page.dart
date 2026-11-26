@@ -70,7 +70,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   }
 
   Widget _photoFallback() =>
-      Center(child: Icon(product.imageIcon, size: 72, color: AppColors.tan));
+      Center(child: Icon(product.imageIcon, size: 72, color: context.colors.secondary));
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     final overview = Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.mustard,
+        color: context.goldPanel,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -111,7 +111,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: ColoredBox(
-              color: AppColors.ivory,
+              color: context.colors.surfaceContainerLow,
               child: AspectRatio(
                 aspectRatio: 1.65,
                 child: photos.isEmpty
@@ -164,7 +164,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             ],
           ),
           if (product.description.trim().isNotEmpty) ...[
-            const Divider(height: 32, color: Color(0x453B2F2F)),
+            Divider(height: 32, color: context.colors.outlineVariant),
             Text('Descripción y qué incluye', style: theme.titleLarge),
             const SizedBox(height: 8),
             Text(
@@ -180,9 +180,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     final rental = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
         boxShadow: const [
           BoxShadow(
             color: Color(0x123B2F2F),
@@ -195,7 +195,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ColoredBox(
-            color: AppColors.espresso,
+            color: context.brandPanel,
             child: Padding(
               padding: const EdgeInsets.all(22),
               child: Column(
@@ -264,7 +264,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 ],
                 if (!product.isAvailable)
                   const Text('Artículo no disponible para renta.'),
-                const Divider(height: 30, color: AppColors.border),
+                Divider(height: 30, color: context.colors.outlineVariant),
                 if (period != null) ...[
                   Semantics(
                     liveRegion: true,
@@ -302,7 +302,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     );
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.espresso,
+        backgroundColor: context.brandPanel,
         foregroundColor: AppColors.white,
         title: const Text('Detalles del artículo'),
         actions: [
@@ -395,10 +395,10 @@ class _DateField extends StatelessWidget {
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.espresso,
-        disabledForegroundColor: AppColors.muted,
-        backgroundColor: onTap == null ? AppColors.canvas : AppColors.ivory,
-        side: const BorderSide(color: AppColors.border),
+        foregroundColor: context.colors.onSurface,
+        disabledForegroundColor: context.colors.onSurfaceVariant,
+        backgroundColor: onTap == null ? context.canvas : context.colors.surfaceContainerLow,
+        side: BorderSide(color: context.colors.outlineVariant),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),

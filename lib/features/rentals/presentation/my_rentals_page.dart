@@ -23,10 +23,10 @@ class MyRentalsPage extends StatelessWidget {
       builder: (context, _) {
         final orders = rentals.orders;
         return Scaffold(
-          backgroundColor: AppColors.canvas,
+          backgroundColor: context.canvas,
           appBar: AppBar(
-            backgroundColor: AppColors.espresso,
-            surfaceTintColor: AppColors.espresso,
+            backgroundColor: context.brandPanel,
+            surfaceTintColor: context.brandPanel,
             foregroundColor: AppColors.white,
             elevation: 0,
             titleSpacing: 0,
@@ -57,13 +57,13 @@ class MyRentalsPage extends StatelessWidget {
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: AppColors.ivory,
+                            color: context.colors.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.local_shipping_outlined,
                             size: 36,
-                            color: AppColors.tan,
+                            color: context.colors.secondary,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -75,10 +75,10 @@ class MyRentalsPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        const Text(
+                        Text(
                           'Cuando confirmes una renta desde el carrito podrás seguir su envío, calificarla o levantar reportes aquí.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.muted),
+                          style: TextStyle(color: context.colors.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -91,11 +91,11 @@ class MyRentalsPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final order = orders[index];
                     return Material(
-                      color: AppColors.white,
+                      color: context.colors.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: AppColors.tan.withValues(alpha: 0.5),
+                          color: context.colors.secondary.withValues(alpha: 0.5),
                         ),
                       ),
                       clipBehavior: Clip.antiAlias,
@@ -117,12 +117,12 @@ class MyRentalsPage extends StatelessWidget {
                                 width: 46,
                                 height: 46,
                                 decoration: BoxDecoration(
-                                  color: AppColors.ivory,
+                                  color: context.colors.surfaceContainerLow,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.local_shipping_outlined,
-                                  color: AppColors.espresso,
+                                  color: context.colors.onSurface,
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -140,9 +140,9 @@ class MyRentalsPage extends StatelessWidget {
                                     const SizedBox(height: 3),
                                     Text(
                                       '${order.totalUnits} ${order.totalUnits == 1 ? 'unidad' : 'unidades'} · ${order.shipment.codigoSeguimiento}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.muted,
+                                        color: context.colors.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
@@ -159,11 +159,11 @@ class MyRentalsPage extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(height: 2),
-                                  const Text(
+                                  Text(
                                     'Ver envío →',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.tan,
+                                      color: context.colors.secondary,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
