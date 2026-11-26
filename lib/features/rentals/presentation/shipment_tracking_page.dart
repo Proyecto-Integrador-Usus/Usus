@@ -96,10 +96,10 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage> {
         }
 
         return Scaffold(
-          backgroundColor: AppColors.canvas,
+          backgroundColor: context.canvas,
           appBar: AppBar(
-            backgroundColor: AppColors.espresso,
-            surfaceTintColor: AppColors.espresso,
+            backgroundColor: context.brandPanel,
+            surfaceTintColor: context.brandPanel,
             foregroundColor: AppColors.white,
             elevation: 0,
             titleSpacing: 0,
@@ -235,7 +235,7 @@ class _ShipmentHeroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.espresso,
+        color: context.brandPanel,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -336,9 +336,9 @@ class _TimelineCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.ivory,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,10 +359,10 @@ class _TimelineCard extends StatelessWidget {
                       height: 14,
                       margin: const EdgeInsets.only(top: 3),
                       decoration: BoxDecoration(
-                        color: i == 0 ? AppColors.mustard : AppColors.border,
+                        color: i == 0 ? AppColors.mustard : context.colors.outlineVariant,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: i == 0 ? AppColors.espresso : AppColors.muted,
+                          color: i == 0 ? AppColors.espresso : context.colors.onSurfaceVariant,
                           width: 2,
                         ),
                       ),
@@ -371,7 +371,7 @@ class _TimelineCard extends StatelessWidget {
                       Container(
                         width: 2,
                         height: 36,
-                        color: AppColors.border,
+                        color: context.colors.outlineVariant,
                       ),
                   ],
                 ),
@@ -391,17 +391,17 @@ class _TimelineCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         events[i].detail,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.muted,
+                          color: context.colors.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         formatTime(events[i].timestamp),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.tan,
+                          color: context.colors.secondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -427,9 +427,9 @@ class _ShipmentDetailsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.ivory,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +484,7 @@ class _InfoLine extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: AppColors.tan),
+          Icon(icon, size: 18, color: context.colors.secondary),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -492,7 +492,7 @@ class _InfoLine extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 11, color: AppColors.muted),
+                  style: TextStyle(fontSize: 11, color: context.colors.onSurfaceVariant),
                 ),
                 Text(
                   value,
@@ -525,9 +525,9 @@ class _OrderPaymentCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.ivory,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,7 +543,7 @@ class _OrderPaymentCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.ivory,
+                  color: context.colors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -580,7 +580,7 @@ class _OrderPaymentCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
           ],
-          const Divider(height: 22, color: AppColors.border),
+          Divider(height: 22, color: context.colors.outlineVariant),
           Text(
             '${p.metodoPago.label} · ${p.detalleResumen}',
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -588,7 +588,7 @@ class _OrderPaymentCard extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             'Folio ${p.idPago} · Ref: ${p.referencia} · ${formatTime(p.fechaPago)}',
-            style: const TextStyle(fontSize: 11, color: AppColors.muted),
+            style: TextStyle(fontSize: 11, color: context.colors.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
           Row(
@@ -645,9 +645,9 @@ class _ReviewCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.ivory,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -658,9 +658,9 @@ class _ReviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           if (!order.isFinalized)
-            const Text(
+            Text(
               'Podrás calificar y escribir una reseña cuando la renta esté finalizada (usa "Avanzar estado del envío" arriba para probarlo).',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
             )
           else if (review != null) ...[
             Row(
@@ -676,7 +676,7 @@ class _ReviewCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   review.idResena,
-                  style: const TextStyle(fontSize: 11, color: AppColors.muted),
+                  style: TextStyle(fontSize: 11, color: context.colors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -685,12 +685,12 @@ class _ReviewCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Publicada el ${formatTime(review.fecha)}',
-              style: const TextStyle(fontSize: 11, color: AppColors.muted),
+              style: TextStyle(fontSize: 11, color: context.colors.onSurfaceVariant),
             ),
           ] else ...[
-            const Text(
+            Text(
               '¿Qué tal estuvo el servicio y el estado de los artículos?',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Row(
@@ -753,9 +753,9 @@ class _ReportsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.ivory,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -777,9 +777,9 @@ class _ReportsCard extends StatelessWidget {
           ),
           if (order.reports.isEmpty) ...[
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Si recibiste un artículo dañado, incompleto o con retraso, puedes levantar un reporte.',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
             ),
           ] else ...[
             const SizedBox(height: 12),
@@ -788,7 +788,7 @@ class _ReportsCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.ivory,
+                  color: context.colors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -807,9 +807,9 @@ class _ReportsCard extends StatelessWidget {
                         ),
                         Text(
                           '${rep.idReporte} · ${rep.estado}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.tan,
+                            color: context.colors.secondary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -823,9 +823,9 @@ class _ReportsCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       formatTime(rep.fecha),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.muted,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -868,7 +868,7 @@ class _ReportDialogState extends State<_ReportDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.white,
+      backgroundColor: context.colors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Text(
         'Levantar reporte',
@@ -933,7 +933,7 @@ class _ReportDialogState extends State<_ReportDialog> {
             ));
           },
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.espresso,
+            backgroundColor: context.brandPanel,
             foregroundColor: AppColors.white,
           ),
           child: const Text('Enviar reporte'),

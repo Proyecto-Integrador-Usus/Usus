@@ -102,7 +102,7 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: context.canvas,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -111,7 +111,7 @@ class _AccountPageState extends State<AccountPage> {
               onPressed: () => Navigator.maybePop(context),
               icon: const Icon(Icons.arrow_back_rounded, size: 18),
               label: const Text('Volver al catálogo'),
-              style: TextButton.styleFrom(foregroundColor: AppColors.espresso),
+              style: TextButton.styleFrom(foregroundColor: context.colors.onSurface),
             );
             final fields = Center(
               child: ConstrainedBox(
@@ -205,9 +205,9 @@ class _AccountPageState extends State<AccountPage> {
     return Theme(
       data: theme.copyWith(
         inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-          fillColor: AppColors.white,
-          floatingLabelStyle: const TextStyle(
-            color: AppColors.espresso,
+          fillColor: context.colors.surface,
+          floatingLabelStyle: TextStyle(
+            color: context.colors.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -226,7 +226,7 @@ class _AccountPageState extends State<AccountPage> {
               _register
                   ? 'Una cuenta para rentar y publicar artículos.'
                   : 'Entra con tu correo y contraseña.',
-              style: const TextStyle(color: AppColors.espresso, fontSize: 16),
+              style: TextStyle(color: context.colors.onSurface, fontSize: 16),
             ),
             const SizedBox(height: 28),
             if (_register) ...[
@@ -361,21 +361,21 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 6),
             TextButton(
               onPressed: _busy ? null : _changeMode,
-              style: TextButton.styleFrom(foregroundColor: AppColors.espresso),
+              style: TextButton.styleFrom(foregroundColor: context.colors.onSurface),
               child: Text(
                 _register
                     ? 'Ya tengo cuenta · Iniciar sesión'
                     : 'Soy nuevo · Crear cuenta',
               ),
             ),
-            const Divider(height: 28, color: AppColors.border),
-            const Row(
+            Divider(height: 28, color: context.colors.outlineVariant),
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   Icons.info_outline_rounded,
                   size: 16,
-                  color: AppColors.espresso,
+                  color: context.colors.onSurface,
                 ),
                 SizedBox(width: 8),
                 Expanded(

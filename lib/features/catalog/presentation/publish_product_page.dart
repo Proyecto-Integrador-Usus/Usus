@@ -208,10 +208,10 @@ class _PublishProductPageState extends State<PublishProductPage> {
         .toList(growable: false);
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: context.canvas,
       appBar: AppBar(
-        backgroundColor: AppColors.espresso,
-        surfaceTintColor: AppColors.espresso,
+        backgroundColor: context.brandPanel,
+        surfaceTintColor: context.brandPanel,
         foregroundColor: AppColors.white,
         elevation: 0,
         titleSpacing: 0,
@@ -358,9 +358,9 @@ class _PhotosSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,9 +370,9 @@ class _PhotosSection extends StatelessWidget {
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Agrega imágenes reales del estado del artículo. La primera será la portada.',
-            style: TextStyle(fontSize: 12, color: AppColors.muted),
+            style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
           ),
           const SizedBox(height: 14),
           if (imageUrls.isEmpty)
@@ -380,9 +380,9 @@ class _PhotosSection extends StatelessWidget {
               height: 132,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.ivory,
+                color: context.colors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.colors.outlineVariant),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -390,12 +390,12 @@ class _PhotosSection extends StatelessWidget {
                   Icon(
                     category.icon,
                     size: 38,
-                    color: AppColors.tan,
+                    color: context.colors.secondary,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Aún no agregas fotos (opcional para pruebas)',
-                    style: TextStyle(fontSize: 12, color: AppColors.muted),
+                    style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -423,11 +423,11 @@ class _PhotosSection extends StatelessWidget {
                                   url,
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, _, _) => Container(
-                                    color: AppColors.ivory,
+                                    color: context.colors.surfaceContainerLow,
                                     alignment: Alignment.center,
                                     child: Icon(
                                       category.icon,
-                                      color: AppColors.tan,
+                                      color: context.colors.secondary,
                                       size: 34,
                                     ),
                                   ),
@@ -449,7 +449,7 @@ class _PhotosSection extends StatelessWidget {
                             ),
                             child: const Text(
                               'Portada',
-                              style: TextStyle(
+                              style: TextStyle(color: AppColors.espresso,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -461,7 +461,7 @@ class _PhotosSection extends StatelessWidget {
                           left: 6,
                           bottom: 6,
                           child: Material(
-                            color: AppColors.white.withValues(alpha: 0.92),
+                            color: context.colors.surface.withValues(alpha: 0.92),
                             borderRadius: BorderRadius.circular(8),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(8),
@@ -486,7 +486,7 @@ class _PhotosSection extends StatelessWidget {
                         right: 4,
                         top: 4,
                         child: Material(
-                          color: AppColors.white,
+                          color: context.colors.surface,
                           shape: const CircleBorder(),
                           child: IconButton(
                             tooltip: 'Quitar foto',
@@ -525,7 +525,7 @@ class _PhotosSection extends StatelessWidget {
               FilledButton(
                 onPressed: onAddUrl,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.espresso,
+                  backgroundColor: context.brandPanel,
                   foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -591,9 +591,9 @@ class _ListingPreviewCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -613,22 +613,22 @@ class _ListingPreviewCard extends StatelessWidget {
                       coverUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => Container(
-                        color: AppColors.ivory,
+                        color: context.colors.surfaceContainerLow,
                         alignment: Alignment.center,
                         child: Icon(
                           category.icon,
                           size: 46,
-                          color: AppColors.tan,
+                          color: context.colors.secondary,
                         ),
                       ),
                     )
                   : Container(
-                      color: AppColors.ivory,
+                      color: context.colors.surfaceContainerLow,
                       alignment: Alignment.center,
                       child: Icon(
                         category.icon,
                         size: 46,
-                        color: AppColors.tan,
+                        color: context.colors.secondary,
                       ),
                     ),
             ),
@@ -636,11 +636,11 @@ class _ListingPreviewCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             '${category.label.toUpperCase()} · $condition',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               letterSpacing: 0.8,
               fontWeight: FontWeight.w800,
-              color: AppColors.tan,
+              color: context.colors.secondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -658,15 +658,15 @@ class _ListingPreviewCard extends StatelessWidget {
                   '$location · Por $ownerName',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                  style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
                 ),
               ),
               Text(
                 '\$${pricePerDay.toStringAsFixed(0)} / día',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.espresso,
+                  color: context.colors.onSurface,
                 ),
               ),
             ],
@@ -729,10 +729,10 @@ class _FormDetailsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.white,
+      color: context.colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: context.colors.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -745,9 +745,9 @@ class _FormDetailsCard extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Completa la información para que los clientes puedan cotizar y rentar con claridad.',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
             ),
             const SizedBox(height: 18),
             TextFormField(
@@ -771,7 +771,7 @@ class _FormDetailsCard extends StatelessWidget {
                     value: category,
                     child: Row(
                       children: [
-                        Icon(category.icon, size: 18, color: AppColors.espresso),
+                        Icon(category.icon, size: 18, color: context.colors.onSurface),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -802,7 +802,7 @@ class _FormDetailsCard extends StatelessWidget {
                     label: Text(condition),
                     selected: selectedCondition == condition,
                     selectedColor: AppColors.mustard.withValues(alpha: 0.3),
-                    backgroundColor: AppColors.ivory,
+                    backgroundColor: context.colors.surfaceContainerLow,
                     onSelected: (_) => onConditionChanged(condition),
                   ),
               ],
@@ -910,9 +910,9 @@ class _FormDetailsCard extends StatelessWidget {
                 'Disponible para rentar de inmediato',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
-              subtitle: const Text(
+              subtitle: Text(
                 'Si lo desactivas, quedará guardado pero oculto para rentas.',
-                style: TextStyle(fontSize: 12, color: AppColors.muted),
+                style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
               ),
               onChanged: onAvailableChanged,
             ),

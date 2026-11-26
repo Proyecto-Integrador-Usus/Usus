@@ -166,10 +166,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     final cart = widget.cart;
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: context.canvas,
       appBar: AppBar(
-        backgroundColor: AppColors.espresso,
-        surfaceTintColor: AppColors.espresso,
+        backgroundColor: context.brandPanel,
+        surfaceTintColor: context.brandPanel,
         foregroundColor: AppColors.white,
         elevation: 0,
         titleSpacing: 0,
@@ -228,10 +228,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
                 const SizedBox(height: 14),
                 Material(
-                  color: AppColors.white,
+                  color: context.colors.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: AppColors.border),
+                    side: BorderSide(color: context.colors.outlineVariant),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: CheckboxListTile(
@@ -331,9 +331,9 @@ class _DeliveryInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,7 +359,7 @@ class _DeliveryInfoCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.ivory,
+                  color: context.colors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -389,7 +389,7 @@ class _DeliveryInfoCard extends StatelessWidget {
                   label: Text(nodo),
                   selected: selectedNodo == nodo,
                   selectedColor: AppColors.mustard.withValues(alpha: 0.3),
-                  backgroundColor: AppColors.ivory,
+                  backgroundColor: context.colors.surfaceContainerLow,
                   onSelected: (_) => onNodoChanged(nodo),
                 ),
             ],
@@ -460,10 +460,10 @@ class _PaymentSectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.white,
+      color: context.colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: context.colors.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -506,9 +506,9 @@ class _PaymentSectionCard extends StatelessWidget {
                   ),
                   subtitle: Text(
                     method.subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.muted,
+                      color: context.colors.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -590,9 +590,9 @@ class _CardFields extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.canvas,
+        color: context.canvas,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         children: [
@@ -692,9 +692,9 @@ class _SpeiFields extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.canvas,
+        color: context.canvas,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -745,9 +745,9 @@ class _CashFields extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.canvas,
+        color: context.canvas,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Wrap(
         spacing: 8,
@@ -758,7 +758,7 @@ class _CashFields extends StatelessWidget {
               label: Text(opt),
               selected: cashOption == opt,
               selectedColor: AppColors.mustard.withValues(alpha: 0.3),
-              backgroundColor: AppColors.white,
+              backgroundColor: context.colors.surface,
               onSelected: (_) => onChanged(opt),
             ),
         ],
@@ -783,15 +783,15 @@ class _CheckoutSummaryCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: AppColors.espresso,
+            color: context.brandPanel,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -825,9 +825,9 @@ class _CheckoutSummaryCard extends StatelessWidget {
                           '${item.quantity}× ${item.product.name} (${item.days}d)',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.muted,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -843,7 +843,7 @@ class _CheckoutSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                 ],
-                const Divider(height: 22, color: AppColors.border),
+                Divider(height: 22, color: context.colors.outlineVariant),
                 _RowSummary('Renta de artículos', pesos(cart.rentalSubtotal)),
                 const SizedBox(height: 8),
                 _RowSummary(
@@ -856,7 +856,7 @@ class _CheckoutSummaryCard extends StatelessWidget {
                   pesos(cart.depositTotal),
                   muted: true,
                 ),
-                const Divider(height: 24, color: AppColors.border),
+                Divider(height: 24, color: context.colors.outlineVariant),
                 Row(
                   children: [
                     const Expanded(
@@ -870,10 +870,10 @@ class _CheckoutSummaryCard extends StatelessWidget {
                     ),
                     Text(
                       pesos(cart.total),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.espresso,
+                        color: context.colors.onSurface,
                       ),
                     ),
                   ],
@@ -914,7 +914,7 @@ class _RowSummary extends StatelessWidget {
       Expanded(
         child: Text(
           label,
-          style: const TextStyle(fontSize: 13, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, color: context.colors.onSurfaceVariant),
         ),
       ),
       Text(
@@ -922,7 +922,7 @@ class _RowSummary extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
-          color: muted ? AppColors.muted : AppColors.espresso,
+          color: muted ? context.colors.onSurfaceVariant : context.colors.onSurface,
         ),
       ),
     ],

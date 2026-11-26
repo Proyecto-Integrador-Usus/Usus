@@ -37,7 +37,7 @@ class CartPage extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Resumen preliminar de renta',
@@ -59,9 +59,9 @@ class CartPage extends StatelessWidget {
               style: const TextStyle(height: 1.5),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'El total estimado incluye la renta y la modalidad de entrega seleccionada.',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
             ),
           ],
         ),
@@ -99,10 +99,10 @@ class CartPage extends StatelessWidget {
       builder: (context, _) {
         final items = cart.items;
         return Scaffold(
-          backgroundColor: AppColors.canvas,
+          backgroundColor: context.canvas,
           appBar: AppBar(
-            backgroundColor: AppColors.espresso,
-            surfaceTintColor: AppColors.espresso,
+            backgroundColor: context.brandPanel,
+            surfaceTintColor: context.brandPanel,
             foregroundColor: AppColors.white,
             elevation: 0,
             titleSpacing: 0,
@@ -229,7 +229,7 @@ class _SectionHeader extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(color: AppColors.muted, fontSize: 13),
+                style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 13),
               ),
             ],
           ),
@@ -258,9 +258,9 @@ class _CartItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.45)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.45)),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -292,11 +292,11 @@ class _CartItemCard extends StatelessWidget {
                       children: [
                         Text(
                           product.category.label.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.8,
-                            color: AppColors.tan,
+                            color: context.colors.secondary,
                           ),
                         ),
                         const SizedBox(height: 3),
@@ -314,9 +314,9 @@ class _CartItemCard extends StatelessWidget {
                     tooltip: 'Quitar del carrito',
                     onPressed: onRemove,
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline_rounded,
-                      color: AppColors.muted,
+                      color: context.colors.onSurfaceVariant,
                       size: 20,
                     ),
                   ),
@@ -325,18 +325,18 @@ class _CartItemCard extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.location_on_outlined,
                     size: 14,
-                    color: AppColors.muted,
+                    color: context.colors.onSurfaceVariant,
                   ),
                   const SizedBox(width: 3),
                   Expanded(
                     child: Text(
                       '${product.location} · ${pesos(product.pricePerDay)} / día',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.muted,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -367,10 +367,10 @@ class _CartItemCard extends StatelessWidget {
                   ),
                   Text(
                     pesos(item.subtotal),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.espresso,
+                      color: context.colors.onSurface,
                     ),
                   ),
                 ],
@@ -399,12 +399,12 @@ class _ThumbPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.ivory,
+      color: context.colors.surfaceContainerLow,
       alignment: Alignment.center,
       child: Icon(
         item.product.imageIcon,
         size: 34,
-        color: AppColors.tan,
+        color: context.colors.secondary,
       ),
     );
   }
@@ -430,14 +430,14 @@ class _StepperControl extends StatelessWidget {
       children: [
         Text(
           '$label:',
-          style: const TextStyle(fontSize: 12, color: AppColors.muted),
+          style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant),
         ),
         const SizedBox(width: 6),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.ivory,
+            color: context.colors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+            border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -490,24 +490,24 @@ class _DeliveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.ivory,
+      color: context.colors.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: AppColors.tan.withValues(alpha: 0.5)),
+        side: BorderSide(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: AppColors.tan.withValues(alpha: 0.2),
+            color: context.colors.secondary.withValues(alpha: 0.2),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: const Text(
+            child: Text(
               'Entrega y recolección',
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 15,
-                color: AppColors.espresso,
+                color: context.colors.onSurface,
               ),
             ),
           ),
@@ -524,14 +524,14 @@ class _DeliveryCard extends StatelessWidget {
                   for (final method in DeliveryMethod.values)
                     RadioListTile<DeliveryMethod>(
                       value: method,
-                      activeColor: AppColors.espresso,
+                      activeColor: context.colors.onSurface,
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         method.label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.espresso,
+                          color: context.colors.onSurface,
                         ),
                       ),
                       subtitle: method == DeliveryMethod.delivery
@@ -539,25 +539,25 @@ class _DeliveryCard extends StatelessWidget {
                               address.isEmpty
                                   ? 'Dirección registrada en tu cuenta'
                                   : address,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.muted,
+                                color: context.colors.onSurfaceVariant,
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Sin costo adicional · Se coordina punto de entrega',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.muted,
+                                color: context.colors.onSurfaceVariant,
                               ),
                             ),
                       secondary: Text(
                         method.baseCost == 0
                             ? 'Gratis'
                             : pesos(method.baseCost),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: AppColors.espresso,
+                          color: context.colors.onSurface,
                         ),
                       ),
                     ),
@@ -585,15 +585,15 @@ class _OrderSummaryCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.tan.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.secondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: AppColors.espresso,
+            color: context.brandPanel,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -637,9 +637,9 @@ class _OrderSummaryCard extends StatelessWidget {
                   value: pesos(cart.depositTotal),
                   mutedValue: true,
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 14),
-                  child: Divider(color: AppColors.border, height: 1),
+                  child: Divider(color: context.colors.outlineVariant, height: 1),
                 ),
                 Row(
                   children: [
@@ -658,10 +658,10 @@ class _OrderSummaryCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           pesos(cart.total),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.espresso,
+                            color: context.colors.onSurface,
                           ),
                         ),
                       ),
@@ -680,12 +680,12 @@ class _OrderSummaryCard extends StatelessWidget {
                   child: const Text('Continuar renta'),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'El depósito en garantía se consulta en los detalles de cada artículo.',
                   style: TextStyle(
                     fontSize: 11,
                     height: 1.45,
-                    color: AppColors.muted,
+                    color: context.colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -716,7 +716,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppColors.muted),
+            style: TextStyle(fontSize: 13, color: context.colors.onSurfaceVariant),
           ),
         ),
         Text(
@@ -724,7 +724,7 @@ class _SummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: mutedValue ? AppColors.muted : AppColors.espresso,
+            color: mutedValue ? context.colors.onSurfaceVariant : context.colors.onSurface,
           ),
         ),
       ],
@@ -748,13 +748,13 @@ class _EmptyCart extends StatelessWidget {
               width: 76,
               height: 76,
               decoration: BoxDecoration(
-                color: AppColors.ivory,
+                color: context.colors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(22),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.shopping_bag_outlined,
                 size: 38,
-                color: AppColors.tan,
+                color: context.colors.secondary,
               ),
             ),
             const SizedBox(height: 18),
@@ -764,9 +764,9 @@ class _EmptyCart extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Agrega herramientas, mobiliario o equipo desde el catálogo para armar tu renta.',
-              style: TextStyle(color: AppColors.muted, fontSize: 14),
+              style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
